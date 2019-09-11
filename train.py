@@ -2,7 +2,7 @@ import argparse
 
 from creme import stream
 from creme.compose import Pipeline
-from creme.linear_model import LogisticRegression
+from creme.linear_model import PAClassifier
 from creme.metrics import Accuracy
 from creme.multiclass import OneVsRestClassifier
 from creme.preprocessing import StandardScaler
@@ -22,28 +22,33 @@ dataset = stream.iter_csv(arguments['train'], target_name='class', types=types)
 
 model = Pipeline([
     ('scaler', StandardScaler()),
-    ('learner', OneVsRestClassifier(binary_classifier=LogisticRegression()))
+    ('learner', OneVsRestClassifier(binary_classifier=PAClassifier()))
 ])
 
 metric = Accuracy()
 
 print('[INFO] Training started...')
 for index, (X, y) in enumerate(dataset):
-    predictions = model.predict_one(X)
-    model = model.fit_one(X, y)
-    metric = metric.update(y, predictions)
+    try:
+        predictions = model.predict_one(X)
+        model = model.fit_one(X, y)
+        metric = metric.update(y, predictions)
 
-    print(f'[INFO] Update {index} - {metric}')
+        if index % 10 == 0:
+            print(f'[INFO] Update {index} - {metric}')
+    except OverflowError as e:
+        print(f'Overflow error. Skipping metric update for {index}')
 
 print(f'[INFO] Final - {metric}')
 
 print('[INFO] Testing model...')
-
+metric = Accuracy()
 test_dataset = stream.iter_csv(arguments['test'], target_name='class', types=types)
 for index, (X, y) in enumerate(test_dataset):
     predictions = model.predict_one(X)
     metric = metric.update(y, predictions)
 
-    print(f'[INFO] (TEST) Update {index} - {metric}')
+    if index % 1000 == 0:
+        print(f'[INFO] (TEST) Update {index} - {metric}')
 
 print(f'[INFO] (TEST) Final - {metric}')

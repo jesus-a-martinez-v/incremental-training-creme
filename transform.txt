@@ -1,0 +1,11 @@
+[INFO] Processing batch 1/704
+[INFO] Processing batch 2/704
+[INFO] Processing batch 3/704
+[INFO] Processing batch 4/704
+[INFO] Processing batch 5/704
+...
+[INFO] Processing batch 700/704
+[INFO] Processing batch 701/704
+[INFO] Processing batch 702/704
+[INFO] Processing batch 703/704
+[INFO] Processing batch 704/704
